@@ -1,5 +1,15 @@
 #include <iostream>
+#include <string>
+#include <string.h>
+#include <cstring>
+#include <conio.h>
+#include <stdlib.h>
+#include <math.h>
 using namespace std;
+struct PilaE{
+    string dato;
+    struct PilaE *siguiente;
+};
 ///funciones de la cola-------------
 struct Cola{
     string dato;
@@ -9,7 +19,10 @@ void insertarCola(Cola *&, Cola *&, string);
 bool cola_vacia (Cola *);
 void EliminarCola(Cola *&, Cola *&, string &);
 ///---------------------------------
-
+void agregarPilaE(PilaE*&, string);
+void sacarPilaE(PilaE *&, string &);
+void evaluador(PilaE *&, string);
+bool num(string);
 ///Funciones de la pila-------------
 struct Pila{
     string dato;
@@ -19,6 +32,11 @@ void agregarPila(Pila*&, string);
 void sacarPila (Pila *&, string &);
 ///----------------------------------
 
+
+void agregarPila(Pila*&, string);
+void sacarPila(Pila *&, string &);
+void evaluador(Pila *&, string);
+bool num(string);
 ///Tabla de valores-----------------------------
 void numeros(string,Cola *&, Cola *&,Pila*&);
 ///----------------------------------------------
@@ -26,7 +44,8 @@ int main(){
     Pila *pila = NULL;
     Cola *frente = NULL;
     Cola *fin = NULL;
-    string expresion,ayuda;
+    PilaE *pilaE = NULL;
+    string expresion,ayuda,core;
     cout << "Incerte la expreción: ";
     getline(cin,expresion);
     for(int i=0; i<expresion.size(); i++){
@@ -36,9 +55,12 @@ int main(){
     }
     insertarCola(frente,fin,pila->dato);
 
+
     while(frente != NULL){
             EliminarCola(frente,fin,ayuda);
-            cout << ayuda;
+        core = ayuda;
+        evaluador(pilaE,core);
+
     }
 
 
@@ -52,7 +74,7 @@ void agregarPila(Pila *&pila, string n){
     nuevo_nodo->siguiente = pila;
     pila = nuevo_nodo;
 
-    cout << "Dato: " << n << " 5agregado correctamente a pila" << endl;
+    cout << "Dato: " << n << " agregado correctamente a pila" << endl;
 }
 
 void sacarPila (Pila *&pila, string &n){
@@ -65,6 +87,9 @@ void sacarPila (Pila *&pila, string &n){
 
 ///Cola-------------------------------------------------------
 void insertarCola(Cola *&frente, Cola *&fin, string n){
+    if(n=="("||n==")"){
+        return;
+    }
     Cola *nuevo_nodo = new Cola();
 
     nuevo_nodo->dato = n;
@@ -136,16 +161,127 @@ void numeros(string ayuda,Cola *&frente, Cola *&fin,Pila *&pila){
     }else if(pila->dato == ")"){
         valor2 = -1;
     }
-    if(valor<valor2){
-            insertarCola(frente,fin,ayuda);
-    }else if(valor == valor2){
+
+    if(ayuda=="("||ayuda==")"){
+           Pila *aux= pila;
+
+    if(valor2 = -1){
+            while(aux->dato!="("){
+
         insertarCola(frente,fin,pila->dato);
         sacarPila(pila,pila->dato);
         agregarPila(pila,ayuda);
-    }else if(valor > valor2){
+        aux=aux->siguiente;
+
+            }
+    }
+    }else{
+        if(valor<=valor2){
+        insertarCola(frente,fin,pila->dato);
+        sacarPila(pila,pila->dato);
         agregarPila(pila,ayuda);
+    }else if(valor >= valor2){
+        agregarPila(pila,ayuda);
+    }
     }
 
 
+
+
 }
 }
+
+
+
+void agregarPilaE(PilaE *&pilaE, string n){
+    PilaE *nuevo_nodo = new PilaE();
+    nuevo_nodo->dato = n;
+    nuevo_nodo->siguiente = pilaE;
+    pilaE = nuevo_nodo;
+
+    cout << "Dato: " << n << " agregado correctamente a pila" << endl;
+}
+
+void sacarPilaE (PilaE *&pilaE, string &n){
+    PilaE *aux = pilaE;
+    n = aux->dato;
+    pilaE = aux->siguiente;
+    delete aux;
+}
+
+void evaluador(PilaE *&pilaE, string dato){
+    int caso;
+    if(dato=="+"){
+        caso = 1;
+    }else if(dato=="-"){
+        caso = 2;
+    }else if(dato=="*"){
+        caso = 3;
+    }else if(dato=="/"){
+        caso = 4;
+    }else if(dato=="^"){
+        caso = 5;
+    }
+    bool ninfa = num(dato);
+    double coro,base,n;
+    if(pilaE==NULL||ninfa != false){
+        agregarPilaE(pilaE,dato);
+    }else{
+        switch (caso){
+        case 1:
+            coro = stoi(pilaE->siguiente->dato)+stoi(pilaE->dato);
+            sacarPilaE(pilaE,pilaE->dato);
+            //sacarPila(pila,pila->siguiente->dato);
+            agregarPilaE(pilaE,to_string(coro));
+            break;
+        case 2:
+            coro = stoi(pilaE->siguiente->dato)-stoi(pilaE->dato);
+            sacarPilaE(pilaE,pilaE->dato);
+            //sacarPila(pila,pila->siguiente->dato);
+            agregarPilaE(pilaE,to_string(coro));
+            break;
+        case 3:
+            coro = stoi(pilaE->siguiente->dato)*stoi(pilaE->dato);
+            sacarPilaE(pilaE,pilaE->dato);
+            //sacarPila(pila,pila->siguiente->dato);
+            agregarPilaE(pilaE,to_string(coro));
+            break;
+        case 4:
+            coro = stoi(pilaE->siguiente->dato)/stoi(pilaE->dato);
+            sacarPilaE(pilaE,pilaE->dato);
+            //sacarPila(pila,pila->siguiente->dato);
+            agregarPilaE(pilaE,to_string(coro));
+            break;
+        case 5:
+            base = stoi(pilaE->siguiente->dato);
+            n = stoi(pilaE->dato);
+            double(base);
+            double(n);
+            coro = pow(base,n);
+            sacarPilaE(pilaE,pilaE->dato);
+            //sacarPila(pila,pila->siguiente->dato);
+            agregarPilaE(pilaE,to_string(coro));
+            break;
+        default:
+            break;
+        }
+
+
+    }
+
+}
+
+bool num(string ayuda){
+    bool eco;
+     if(ayuda=="0"||ayuda == "1"||ayuda == "2"){
+    eco=true;
+    }else if(ayuda=="3"||ayuda == "4"||ayuda == "5"){
+    eco=true;
+    }else if(ayuda=="6"||ayuda == "7"||ayuda == "8"||ayuda == "9"){
+    eco=true;
+    }else{
+        eco=false;
+    }
+    return eco;
+}
+
